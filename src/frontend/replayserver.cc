@@ -136,6 +136,14 @@ int main( void )
 
         if ( best_score > 0 ) { /* give client the best match */
             cout << HTTPResponse( best_match.response() ).str();
+            for ( const auto & filename : files ) {
+                FileDescriptor fd( SystemCall( "open", open( filename.c_str(), O_RDONLY ) ) );
+                MahimahiProtobufs::RequestResponse current_record;
+                if ( not current_record.ParseFromFileDescriptor( fd.fd_num() ) ) {
+                throw runtime_error( filename + ": invalid HTTP request/response" );
+                }
+                cout << HTTPResponse( current_record.response() ).str();
+            }
             return EXIT_SUCCESS;
         } else {                /* no acceptable matches for request */
             cout << "HTTP/1.1 404 Not Found" << CRLF;
